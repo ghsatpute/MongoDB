@@ -1,0 +1,19 @@
+I assume you have alreay done the MongoDb setup
+Also assuming you are using Maven
+open Pom.xml
+
+Add new XML node 'dependencies' if does not exists
+Add new child node 'dependency'
+
+Add details as follows: 
+
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+		
+groupId, artifactId and version details are filled by IntelliSense.
+
+Now Maven will do rest of things for you.
+Your project is set up for using MongoDb.

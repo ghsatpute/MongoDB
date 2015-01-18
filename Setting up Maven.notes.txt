@@ -1,0 +1,18 @@
+Download Mongo DB and install.
+
+As course suggests we have used Maven
+Maven is a build automation tool
+
+Download Maven
+Extract
+Set M2_HOME and MAVEN_HOME to base directory 
+(currently M2_HOME is used but some programs may use MAVEN_HOME, so better set both)
+Add bin folder to path
+
+Check Maven, run 
+mvn -version
+
+To use in IntelliJ Idea
+you can creat new maven project. 
+Or can import already created project
+Or add framework support to existing project

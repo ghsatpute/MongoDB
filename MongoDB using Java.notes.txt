@@ -1,0 +1,150 @@
+1. Creating DBObject to CRUD data
+	MongoDb Java driver uses 'BasicDBObject' to insert the data
+	Unlike command prompt client uses JSON as input.
+	
+2. Connect to database and collection(table)
+		---------------------------------------------------------------------------
+		// Connect to client
+        // If no parameters are passed, it takes default host and ports (?)
+		MongoClient mongoClient = new MongoClient();
+		// This is the name of database (correctly collection)
+        DB db = mongoClient.getDB("<database name>");
+        // Connect to collection/ table
+        DBCollection collection = db.getCollection("<collection name>");
+		---------------------------------------------------------------------------
+	
+2. Insert data
+	a. Insert a document
+		(talk is cheap, show me the code :P )
+		---------------------------------------------------------------------------
+        // Create Object to insert
+        DBObject dbObject = new BasicDBObject().append("key1", "value1");
+        collection.insert(dbObject);
+        // This will print with <code>_id<code>
+        // Need to check how the both in memory object and database document are in sync
+        System.out.println(dbObject);
+		---------------------------------------------------------------------------
+		
+		You cannot insert the same object again, it'll throw exception saying duplicate object.
+		You can do so by doing this. (Probably also giving different _id)
+		---------------------------------------------------------------------------
+		dbObject.removeField("_id");
+        collection.insert(dbObject); 
+		---------------------------------------------------------------------------
+		
+	b. Insert multiple documents at once
+		---------------------------------------------------------------------------
+		// Inserting multiple document
+        DBObject doc1 = new BasicDBObject().append("key1", "value2");
+        DBObject doc2 = new BasicDBObject().append("key1", "value3");
+        DBObject doc3 = new BasicDBObject().append("key1", "value4");
+        collection.insert(Arrays.asList(doc1,doc2,doc3));
+		---------------------------------------------------------------------------
+
+3.	Get the data- Basic CRUD
+	a. Get one document
+		---------------------------------------------------------------------------
+		DBObject document = collection.findOne();
+        System.out.println(document);
+		---------------------------------------------------------------------------
+		
+	b. Get multiple document
+		---------------------------------------------------------------------------
+		        DBCursor cursor = collection.find();
+        while(cursor.hasNext()) {
+            DBObject doc = cursor.next();
+            System.out.println(doc);
+        }
+		---------------------------------------------------------------------------
+	
+	c. Get count of documents ()
+		---------------------------------------------------------------------------
+		int count = collection.count();
+		---------------------------------------------------------------------------
+	d. Get the data based on the condition
+		Suppose data is of format
+		{ "_id" : ObjectId("54bbd9662adcd5dffe1eb39d"), "x" : 1, "y" : 98 }
+		{ "_id" : ObjectId("54bbd9662adcd5dffe1eb39e"), "x" : 1, "y" : 80 }
+		{ "_id" : ObjectId("54bbd9662adcd5dffe1eb39f"), "x" : 0, "y" : 26 }
+		{ "_id" : ObjectId("54bbd9662adcd5dffe1eb3a0"), "x" : 0, "y" : 27 }
+		{ "_id" : ObjectId("54bbd9662adcd5dffe1eb3a1"), "x" : 0, "y" : 58 }
+		{ "_id" : ObjectId("54bbd9662adcd5dffe1eb3a2"), "x" : 0, "y" : 29 }
+		{ "_id" : ObjectId("54bbd9662adcd5dffe1eb3a3"), "x" : 0, "y" : 51 }
+		{ "_id" : ObjectId("54bbd9662adcd5dffe1eb3a4"), "x" : 1, "y" : 15 }
+		{ "_id" : ObjectId("54bbd9662adcd5dffe1eb3a5"), "x" : 1, "y" : 55 }
+		{ "_id" : ObjectId("54bbd9662adcd5dffe1eb3a6"), "x" : 1, "y" : 71 }
+		
+		I want to find out document with value of 'x' 1
+		---------------------------------------------------------------------------
+		DBObject query = new BasicDBObject().append("x",1);
+        DBObject returnValue = collection.findOne(query);
+		---------------------------------------------------------------------------
+		
+		Now, I want to find documents with x equals 1 and y is greater than 60
+		---------------------------------------------------------------------------
+		query = new BasicDBObject().append("x",1) // x is equal to y
+                .append("y", new BasicDBObject("$gt", 60)); // y is greater than 60
+		---------------------------------------------------------------------------
+		
+		This also can be done with the help of QueryBuilder class of MongoDb driver.
+		---------------------------------------------------------------------------
+		QueryBuilder queryBuilder = new QueryBuilder().start("x").is(1)
+                .and("y").greaterThan(60);
+        returnValue = collection.findOne(queryBuilder.get()); // queryBuilder.get() returns DBObject
+		---------------------------------------------------------------------------
+	e. Get selected data
+		I don't want x in result
+		---------------------------------------------------------------------------
+		result = collection.find(query, new BasicDBObject("x", false);
+		---------------------------------------------------------------------------
+		
+		Get just y
+		
+		result = collection.find(query, new BasicDBObject("y", true));
+		
+		In this case _id will always return.
+		To remove _id also
+		result = collection.find(query, new BasicDBObject("y"), true).append("_id", false)
+4. Get the sorted data
+		collection.find().sort("_id", -1) 
+		This will reverse(-1) sort by _id 
+5. Skip some lines
+		collection.find().skip(2)
+		This will skip 2 documents
+6. Limit the result
+		collection.find.limit(5)
+		This will return only 5 documents
+7. Update
+		(This updates only one document.)
+		If previous contents are 
+		{_id : 2, name = "Alice", Age : 34}
+		collection.update(new BasicDBObject("_id",2)
+					new BasicDBObject("name", "Bob"))
+		After execution of above statement result will be
+		{_id : 2, name = "Bob"}
+		Age field is removed, so will be any other field, if present.
+		Reason is documents are replaced totally.
+		
+		If you don't want this behavior, you can do following
+		
+		collection.update(new BasicDBObject("_id",2),
+					new BasicDBObject("$set",new BasicDBObject("name", "Bob")) )
+		This will result in 
+		{_id : 2, name = "Bob", Age : 34}
+8. Upsert
+		If has document 'update'
+		If dont' 'insert'
+		
+		collection.update(new BasicDBObject("_id",2),
+					new BasicDBObject("$set",new BasicDBObject("name", "Bob")) 
+					true,	// Upsert
+					false) // Multi update
+9. Multiple document update
+		collection.update(new BasicDBObject(), // For all objects
+					new BasicDBObject("$set",new BasicDBObject("Salutation", "Mr.")) // Set salution to Mr.
+					false,	// Upsert
+					true)  // Multiple true
+10. Remove
+		Remove every document where score is less than 50
+		collection.remove(new BasicDBObject("score", new BasicDBObject("$lt", 50)))
+		
