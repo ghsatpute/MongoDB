@@ -1,3 +1,7 @@
+Database Related
+1. First insert operation will normally create the database
+2. dropD
+
 1. Creating DBObject to CRUD data
 	MongoDb Java driver uses 'BasicDBObject' to insert the data
 	Unlike command prompt client uses JSON as input.
@@ -107,7 +111,7 @@
 		result = collection.find(query, new BasicDBObject("y"), true).append("_id", false)
 4. Get the sorted data
 		collection.find().sort("_id", -1) 
-		This will reverse(-1) sort by _id 
+		This will reverse(that's what -1 stands for) sort by _id 
 5. Skip some lines
 		collection.find().skip(2)
 		This will skip 2 documents
@@ -147,4 +151,5 @@
 10. Remove
 		Remove every document where score is less than 50
 		collection.remove(new BasicDBObject("score", new BasicDBObject("$lt", 50)))
+
 		

@@ -1,0 +1,10 @@
+Aggregation framework
+
+db.products.find(
+	[ $group : 
+		{
+			_id : "$manufacturer" , 	// manufacturer is field
+			num_count : {$sum : 1}		// num_count is new field
+		}
+	]
+	)

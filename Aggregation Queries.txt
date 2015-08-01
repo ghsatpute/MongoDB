@@ -1,0 +1,223 @@
+> db.zips.findOne()
+{
+        "city" : "TWENTYNINE PALMS",
+        "loc" : [
+                -116.06041,
+                34.237969
+        ],
+        "pop" : 11412,
+        "state" : "CA",
+        "_id" : "92278"
+}
+
+db.zips.aggregate(
+	[
+		{
+			$group : { _id : 
+				{
+					state : "$state",
+					zipcode : "$_id"
+				}
+			}
+		}
+	]
+)
+
+
+db.zips.aggregate(
+	[
+		{
+			$group : {
+				_id : { state : "$state", zipcode : "$_id"},
+				"sumpop" : { $sum : "$pop"}
+			}
+		}
+	]
+)
+
+db.zips.aggregate([
+	{
+		$match : {state : "CA"}
+	}
+	]
+	)
+
+db.zips.aggregate([
+	{
+		$match : 
+		{
+			$and : 
+			[
+				{state :  "CA"},
+				{pop : { $gt : 25000}}
+			]
+		}
+	}
+])
+
+db.zips.aggregate([
+	{
+		$match : 
+		{
+			$and : 
+			[
+				{ $or : 
+					[
+						{state : "CA"},
+						{state : "NY"}
+					]
+				},
+				{pop : { $gt : 25000}}
+			]
+		}
+	}
+])
+
+
+db.zips.aggregate([
+	{
+		$match : 
+		{
+			$and : 
+			[
+				{ $or : 
+					[
+						{state : "CT"},
+						{state : "NJ"}
+					]
+				},
+				{pop : { $gt : 25000}}
+			]
+		}
+	}, 
+	{
+		$group : 
+		{
+			_id : null,
+			average : { "$avg" : "$pop"}
+		} 
+	}
+])
+===========================================================================
+db.grades.findOne()
+{
+        "_id" : ObjectId("50b59cd75bed76f46522c34e"),
+        "student_id" : 0,
+        "class_id" : 2,
+        "scores" : [
+                {
+                        "type" : "exam",
+                        "score" : 57.92947112575566
+                },
+                {
+                        "type" : "quiz",
+                        "score" : 21.24542588206755
+                },
+                {
+                        "type" : "homework",
+                        "score" : 68.1956781058743
+                },
+                {
+                        "type" : "homework",
+                        "score" : 67.95019716560351
+                },
+                {
+                        "type" : "homework",
+                        "score" : 18.81037253352722
+                }
+        ]
+}
+
+db.grades.aggregate(
+	[ 
+		{$unwind : "$scores"},
+		{
+			$match : 
+			{
+				"scores.type" : {$ne : "quiz"}
+			}
+		}
+	]
+)
+
+db.grades.aggregate(
+	[ 
+		{$unwind : "$scores"}
+		,
+		{
+			$match : 
+			{
+				"scores.type" : {$ne : "quiz"}
+			}
+		}
+		,
+		{
+			$group : 
+			{
+				_id : { class_id : "$class_id", student_id : "$student_id"},
+				average : {$avg : "$scores.score"}
+			}
+		}
+	]
+)
+
+
+
+db.grades.aggregate(
+	[ 
+		{$unwind : "$scores"}
+		,
+		{
+			$match : 
+			{
+				"scores.type" : {$ne : "quiz"}
+			}
+		}
+		,
+		{
+			$group : 
+			{
+				_id : { class_id : "$class_id", student_id : "$student_id"},
+				average : {$avg : "$scores.score"}
+			}
+		}
+		,
+		{
+			$group : 
+			{
+				_id : { class_id : "$_id.class_id"},
+				average : {$avg : "$average"}
+			}
+		},
+		{ $sort : {average : 1}}
+	]
+)
+
+
+
+
+========================================================================
+The project operator can extract the first digit from any field. For example, to extract the first digit from the city field, you could write this query:
+db.zips.aggregate([
+    {$project: 
+     {
+	first_char: {$substr : ["$city",0,1]},
+     }	 
+   }
+])
+Using the aggregation framework, calculate the sum total of people who are living in a zip code where the city starts with a digit. Choose the answer below. 
+
+Note that you will need to probably change your projection to send more info through than just that first character. Also, you will need a filtering step to get rid of all documents where the city does not start with a digital (0-9).
+
+
+db.zips.aggregate([
+    {$project: 
+     {
+		city: {$substr : ["$city",0,1]},
+     }	 
+   },
+	{$sort : {city : 1}}, 
+    {$match: {city: {$type: 16}}}   
+])
+
+
